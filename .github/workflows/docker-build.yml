@@ -123,10 +123,12 @@ jobs:
           cat blockchaininfo.json
 
           grep -q '"chain": "regtest"' blockchaininfo.json
+
+          echo "DigiByte daemon smoke test passed"
         
       - name: Login to GitHub Container Registry
         if: ${{ inputs.publish }}
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
