@@ -1,0 +1,58 @@
+name: Build DigiByte Core Docker
+
+on:
+  workflow_dispatch:
+    inputs:
+      digibyte_sha256:
+        description: "Verified SHA256 of the official Linux x86_64 archive"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and verify AMD64 image
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate SHA256 input
+        env:
+          EXPECTED_SHA: ${{ inputs.digibyte_sha256 }}
+        run: |
+          if ! [[ "$EXPECTED_SHA" =~ ^[0-9a-fA-F]{64}$ ]]; then
+            echo "Invalid SHA256 value"
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        env:
+          EXPECTED_SHA: ${{ inputs.digibyte_sha256 }}
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --build-arg DIGIBYTE_VERSION=9.26.7 \
+            --build-arg DIGIBYTE_SHA256="$EXPECTED_SHA" \
+            --tag digibyte-core:test-9.26.7 \
+            --load \
+            .
+
+      - name: Verify DigiByte Core version
+        run: |
+          docker run --rm \
+            digibyte-core:test-9.26.7 \
+            --version | tee version.txt
+
+          grep -F "9.26.7" version.txt
+
+      - name: Inspect image
+        run: |
+          docker image inspect digibyte-core:test-9.26.7 \
+            --format='Image: {{.Id}}'
