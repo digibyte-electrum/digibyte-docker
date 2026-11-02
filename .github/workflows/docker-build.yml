@@ -7,9 +7,15 @@ on:
         description: "Verified SHA256 of the official Linux x86_64 archive"
         required: true
         type: string
+      publish:
+        description: "Publish image to GitHub Container Registry"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
+  packages: write
 
 jobs:
   build:
@@ -117,6 +123,25 @@ jobs:
           cat blockchaininfo.json
 
           grep -q '"chain": "regtest"' blockchaininfo.json
+        
+      - name: Login to GitHub Container Registry
+        if: ${{ inputs.publish }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish DigiByte Core 9.26.7
+        if: ${{ inputs.publish }}
+        run: |
+          docker tag \
+            digibyte-core:test-9.26.7 \
+            ghcr.io/digibyte-electrum/digibyte-core:9.26.7
+
+          docker push \
+            ghcr.io/digibyte-electrum/digibyte-core:9.26.7
+
 
           echo "DigiByte daemon smoke test passed"
 
