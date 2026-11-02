@@ -56,3 +56,67 @@ jobs:
         run: |
           docker image inspect digibyte-core:test-9.26.7 \
             --format='Image: {{.Id}}'
+      
+      - name: Smoke test DigiByte daemon
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          docker volume create digibyte-smoke-data
+
+          cleanup() {
+            docker rm -f digibyte-smoke 2>/dev/null || true
+            docker volume rm digibyte-smoke-data 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          docker run -d \
+            --name digibyte-smoke \
+            --network none \
+            --mount type=volume,source=digibyte-smoke-data,target=/opt/blockchain/data \
+            digibyte-core:test-9.26.7 \
+            -datadir=/opt/blockchain/data \
+            -regtest \
+            -server=1 \
+            -listen=0 \
+            -dnsseed=0 \
+            -discover=0 \
+            -connect=0 \
+            -rpcuser=smoketest \
+            -rpcpassword=temporary-ci-password
+
+          echo "Waiting for RPC initialization..."
+
+          ready=0
+
+          for i in $(seq 1 30); do
+            if docker exec digibyte-smoke \
+              digibyte-cli \
+              -datadir=/opt/blockchain/data \
+              -regtest \
+              -rpcuser=smoketest \
+              -rpcpassword=temporary-ci-password \
+              getblockchaininfo > blockchaininfo.json 2>/dev/null; then
+              ready=1
+              break
+            fi
+
+            if [ "$(docker inspect -f '{{.State.Running}}' digibyte-smoke)" != "true" ]; then
+              docker logs digibyte-smoke
+              exit 1
+            fi
+
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            docker logs digibyte-smoke
+            exit 1
+          fi
+
+          cat blockchaininfo.json
+
+          grep -q '"chain": "regtest"' blockchaininfo.json
+
+          echo "DigiByte daemon smoke test passed"
+
