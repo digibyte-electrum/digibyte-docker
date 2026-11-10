@@ -50,11 +50,22 @@ Este ejemplo mantiene la cadena en `./data`, monta `digibyte.conf` desde `./conf
 
 ### 1. Preparar directorios y permisos
 
+El usuario `digibyte` que aparece dentro de la imagen tiene UID/GID 1000. En un bind mount, Docker aplica los permisos numéricos del host: no es necesario que en el host exista un usuario llamado `digibyte`. Si ya existe otro usuario con UID 1000, como ocurre habitualmente, no crees un segundo usuario con el mismo UID; utiliza el usuario existente y asigna los directorios a `1000:1000`.
+
 ```bash
 mkdir -p data config
 sudo chown -R 1000:1000 data config
 chmod 700 data config
 ```
+
+En el host, esos archivos pueden aparecer con el nombre del usuario existente que tenga UID 1000. Eso es normal; dentro del contenedor el proceso seguirá ejecutándose como `digibyte` (UID/GID 1000). Comprueba la correspondencia con:
+
+```bash
+getent passwd 1000
+getent group 1000
+```
+
+Si el UID 1000 no existe, puedes crear un usuario/grupo de servicio con ese UID/GID o asignar los directorios a otro UID ya existente. En este último caso, cambia también `user: "1000:1000"` en `compose.yml` por el UID/GID del propietario real de los directorios y asegúrate de que ese usuario pueda leer `config/digibyte.conf` y escribir `data`. No intentes crear otro usuario con UID 1000 si ya está ocupado.
 
 Crea `config/digibyte.conf` con una contraseña aleatoria, fuera del control de versiones:
 
