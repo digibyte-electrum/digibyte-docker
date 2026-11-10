@@ -50,7 +50,7 @@ Necesitas Docker Engine, el plugin moderno `docker compose` y un sistema Linux `
 sudo usermod -aG docker "$USER"
 ```
 
-El grupo `docker` concede privilegios equivalentes a root. Si no quieres concederlos, ejecuta los comandos Docker con `sudo` o utiliza Docker rootless.
+El grupo `docker` concede privilegios equivalentes a root. Si todavía no has cerrado y vuelto a abrir la sesión después de añadirte al grupo, o si no quieres conceder ese acceso, ejecuta los comandos Docker con `sudo`. Los comandos de los ejemplos siguientes usan `sudo` para funcionar también en una instalación recién preparada; puedes quitarlo cuando `docker info` funcione sin privilegios.
 
 ### 2. Instalar Docker si falta
 
@@ -176,17 +176,17 @@ El puerto P2P se publica para que otros nodos puedan conectarse. El RPC no apare
 Arranque y administración básica:
 
 ```bash
-docker compose up -d
-docker compose logs -f digibyte
-docker compose stop
-docker compose start
-docker compose ps
+sudo docker compose up -d
+sudo docker compose logs -f digibyte
+sudo docker compose stop
+sudo docker compose start
+sudo docker compose ps
 ```
 
 Para consultar RPC desde un contenedor conectado a la red, usa el nombre `digibyte` y las credenciales de `digibyte.conf`:
 
 ```bash
-docker run --rm --network digibyte-backend \
+sudo docker run --rm --network digibyte-backend \
   --volume "$PWD/config:/opt/blockchain/config:ro" \
   ghcr.io/digibyte-electrum/digibyte-core@sha256:fd28db137e1f6ab7a794c7a144efbacfff63ad455301f5fd87820708c4f9e98f \
   digibyte-cli -conf=/opt/blockchain/config/digibyte.conf \
@@ -196,7 +196,7 @@ docker run --rm --network digibyte-backend \
 Para una operación habitual es preferible ejecutar `digibyte-cli` dentro del propio contenedor, evitando repetir credenciales en el historial del shell:
 
 ```bash
-docker compose exec digibyte \
+sudo docker compose exec digibyte \
   digibyte-cli -conf=/opt/blockchain/config/digibyte.conf \
   getblockchaininfo
 ```
@@ -205,15 +205,15 @@ Comprobaciones útiles:
 
 ```bash
 # Estado de la sincronización
-docker compose exec digibyte digibyte-cli \
+sudo docker compose exec digibyte digibyte-cli \
   -conf=/opt/blockchain/config/digibyte.conf getblockchaininfo
 
 # Debe mostrar txindex activo
-docker compose exec digibyte digibyte-cli \
+sudo docker compose exec digibyte digibyte-cli \
   -conf=/opt/blockchain/config/digibyte.conf getindexinfo
 
 # Altura local resumida
-docker compose exec digibyte digibyte-cli \
+sudo docker compose exec digibyte digibyte-cli \
   -conf=/opt/blockchain/config/digibyte.conf getblockcount
 ```
 
@@ -222,9 +222,9 @@ La sincronización está terminada cuando `initialblockdownload` es `false` y `b
 ### Actualizar la imagen sin perder la cadena
 
 ```bash
-docker compose pull digibyte
-docker compose up -d --no-deps digibyte
-docker compose logs -f digibyte
+sudo docker compose pull digibyte
+sudo docker compose up -d --no-deps digibyte
+sudo docker compose logs -f digibyte
 ```
 
 Los datos permanecen en `./data`. No uses `docker compose down -v` si quieres conservar volúmenes administrados por Docker. Antes de actualizar, haz una copia de seguridad y conserva `digibyte.conf`.
