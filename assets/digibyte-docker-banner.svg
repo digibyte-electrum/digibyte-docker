@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 220" role="img" aria-labelledby="title desc">
+  <title id="title">DigiByte Docker</title>
+  <desc id="desc">Docker whale carrying the DigiByte orbital emblem, with a two-line DigiByte Docker wordmark.</desc>
+  <defs>
+    <style>
+      .name { fill: #083766; font: 700 52px sans-serif; letter-spacing: 1px; }
+      .network { fill: #1853ff; font: 600 27px sans-serif; letter-spacing: 4px; }
+      .orbit { fill: none; stroke: #1853ff; stroke-width: 3; }
+    </style>
+    <clipPath id="whale-only" clipPathUnits="userSpaceOnUse">
+      <rect x="16" y="62" width="218" height="130"/>
+    </clipPath>
+  </defs>
+
+  <!-- Docker whale. The separate Docker artwork is kept as a local asset. -->
+  <image href="docker-whale.png" x="16" y="62" width="218" height="195" preserveAspectRatio="xMidYMid meet" clip-path="url(#whale-only)"/>
+
+  <!-- DigiByte emblem from the Electrum DigiByte mark, carried above the whale. -->
+  <g transform="translate(123 52)">
+    <ellipse class="orbit" cx="0" cy="0" rx="49" ry="22"/>
+    <ellipse class="orbit" cx="0" cy="0" rx="49" ry="22" transform="rotate(60)"/>
+    <ellipse class="orbit" cx="0" cy="0" rx="49" ry="22" transform="rotate(-60)"/>
+    <g transform="translate(-39 -39) scale(0.061)">
+      <path fill="#0066CC" d="M640 120.1c-287.2 0-519.9 232.8-519.9 519.9s232.8 519.9 519.9 519.9 519.9-232.8 519.9-519.9S927.2 120.1 640 120.1z"/>
+      <circle fill="#002352" cx="640" cy="640" r="422.4"/>
+      <path fill="#fff" d="M769.9 428l15-39.1c1.5-4-1.4-8.2-5.6-8.2h-55.7L706 426.5h-24.7l14.4-37.6c1.5-4-1.4-8.2-5.6-8.2h-55.7l-17.6 45.8H442.6c-7.9 0-15.3 4.3-19.2 11.2L380 514.3h60.7h264.8c10.8 0 21.5 2 31.5 6.1 19.2 7.9 41.9 25.8 36.2 66.1-9.5 67.5-78.3 187.1-227.6 189l77.2-201c3.2-8.3-2.9-17.1-11.8-17.1H507.5l-125 307.2s25.2 3.1 64.7 3.1L434.8 900h56.9c4.5 0 8.6-2.8 10.3-7l10.7-27.8c8.4-.7 16.9-1.6 25.7-2.6L524 900h56.9c4.5 0 8.6-2.8 10.3-7l16.2-42.3c93.5-21.3 194-67.7 253.7-165.6C981.6 487.7 856.4 436.7 769.9 428z"/>
+    </g>
+  </g>
+
+  <text class="name" x="282" y="103">DigiByte</text>
+  <text class="network" x="286" y="145">DOCKER</text>
+</svg>
