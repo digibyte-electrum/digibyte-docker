@@ -1,5 +1,7 @@
 # DigiByte Core Docker
 
+![DigiByte docker](assets/digibyte-docker-banner.png)
+
 Imagen Docker de DigiByte Core 9.26.7 para ejecutar un nodo completo de DigiByte en Linux AMD64. La imagen contiene `digibyted` y está preparada para conservar la cadena de bloques fuera del contenedor.
 
 El proyecto no modifica DigiByte Core: descarga el paquete oficial, verifica su SHA-256 y empaqueta únicamente el daemon y `digibyte-cli` en una imagen Debian Bookworm Slim.
