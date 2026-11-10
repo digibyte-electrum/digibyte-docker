@@ -84,14 +84,14 @@ En Ubuntu, Fedora, Arch u otra distribución, no uses el repositorio Debian: sig
 
 ### 3. Crear la carpeta del nodo
 
-Para una instalación personal, crea la carpeta en tu home. Por ejemplo, `/home/alice/digibyte-core`. No es necesario crearla en la raíz del sistema ni dentro de `/var/lib/docker`:
+Para una instalación personal, crea la carpeta en tu home. Por ejemplo, `/home/alice/digibyte-docker`. No es necesario crearla en la raíz del sistema ni dentro de `/var/lib/docker`:
 
 ```bash
-mkdir -p "$HOME/digibyte-core/data" "$HOME/digibyte-core/config"
-cd "$HOME/digibyte-core"
+mkdir -p "$HOME/digibyte-docker/data" "$HOME/digibyte-docker/config"
+cd "$HOME/digibyte-docker"
 ```
 
-En un servidor administrado como servicio, también puedes usar una ruta del sistema como `/srv/digibyte-core` o `/opt/digibyte-core`. En ese caso créala con `sudo` y aplica los permisos indicados en el siguiente paso. No guardes la cadena dentro de `/var/lib/docker`, porque Docker administra ese directorio.
+En un servidor administrado como servicio, también puedes usar una ruta del sistema como `/srv/digibyte-docker` o `/opt/digibyte-docker`. En ese caso créala con `sudo` y aplica los permisos indicados en el siguiente paso. No guardes la cadena dentro de `/var/lib/docker`, porque Docker administra ese directorio.
 
 ## Docker Compose para Linux
 
@@ -138,6 +138,8 @@ chmod 600 config/digibyte.conf
 No pongas ese archivo en Git ni escribas la contraseña en argumentos de `docker run` o `docker compose`.
 
 ### 5. `compose.yml`
+
+Crea el archivo `compose.yml` en el directorio de trabajo `"$HOME/digibyte-docker/compose.yml"` y pega el siguiente contenido:
 
 ```yaml
 services:
