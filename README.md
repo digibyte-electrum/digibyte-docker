@@ -26,29 +26,78 @@ El tag `9.26.7` es mutable en el registro. Para un despliegue reproducible, prim
 docker buildx imagetools inspect ghcr.io/digibyte-electrum/digibyte-core:9.26.7
 ```
 
-No se incluye aquí un digest no verificado.
+Los ejemplos de este README ya utilizan la imagen fijada al digest que empleamos en producción:
 
-## Construcción y publicación
+```text
+ghcr.io/digibyte-electrum/digibyte-core@sha256:fd28db137e1f6ab7a794c7a144efbacfff63ad455301f5fd87820708c4f9e98f
+```
 
-La construcción se ejecuta manualmente desde GitHub Actions (`Build DigiByte Core Docker`). El formulario solicita el SHA-256 del archivo oficial Linux x86_64 de DigiByte Core 9.26.7 y una opción `publish`.
+## Guía rápida para cualquier Linux AMD64
 
-El workflow:
+Esta guía es para usar la imagen ya publicada. No necesitas clonar este repositorio ni compilar nada.
 
-1. Comprueba que el valor recibido tiene formato SHA-256.
-2. Descarga el archivo oficial desde las publicaciones de DigiByte Core.
-3. Verifica el SHA-256 dentro del Dockerfile antes de extraer ningún binario.
-4. Construye la imagen para `linux/amd64`.
-5. Comprueba que `digibyted --version` contiene `9.26.7`.
-6. Arranca un nodo `regtest` aislado y consulta `getblockchaininfo` por RPC.
-7. Si se marca `publish`, publica `ghcr.io/digibyte-electrum/digibyte-core:9.26.7` en GHCR.
+### 1. Comprobar si Docker ya está instalado
 
-Para publicar una nueva versión hay que actualizar explícitamente la versión y el checksum en el Dockerfile y en el workflow, revisar el cambio y ejecutar el workflow con el SHA-256 correspondiente. El workflow necesita permiso `packages: write`; no se deben guardar tokens ni contraseñas en el repositorio.
+```bash
+docker --version
+docker compose version
+docker info
+```
+
+Necesitas Docker Engine, el plugin moderno `docker compose` y un sistema Linux `x86_64`/AMD64. Si `docker info` muestra un error de permisos, añade tu usuario al grupo `docker` y vuelve a iniciar sesión:
+
+```bash
+sudo usermod -aG docker "$USER"
+```
+
+El grupo `docker` concede privilegios equivalentes a root. Si no quieres concederlos, ejecuta los comandos Docker con `sudo` o utiliza Docker rootless.
+
+### 2. Instalar Docker si falta
+
+Usa la documentación oficial para elegir el método correcto para tu distribución: [instalar Docker Engine](https://docs.docker.com/engine/install/) y [instalar Docker Compose](https://docs.docker.com/compose/install/linux/).
+
+En Debian soportado, la instalación desde el repositorio oficial de Docker es:
+
+```bash
+sudo apt update
+sudo apt install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg \
+  -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+echo "Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo \"$VERSION_CODENAME\")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc" | \
+  sudo tee /etc/apt/sources.list.d/docker.sources >/dev/null
+
+sudo apt update
+sudo apt install docker-ce docker-ce-cli containerd.io \
+  docker-buildx-plugin docker-compose-plugin
+sudo systemctl enable --now docker
+```
+
+En Ubuntu, Fedora, Arch u otra distribución, no uses el repositorio Debian: sigue las instrucciones específicas de Docker para esa distribución. Debian 10 Buster está fuera del soporte ordinario y no aparece entre las versiones Debian soportadas actualmente por Docker; consulta la sección [Debian 10](#debian-10-buster) antes de instalar.
+
+### 3. Crear la carpeta del nodo
+
+Para una instalación personal, crea la carpeta en tu home. Por ejemplo, `/home/alice/digibyte-core`. No es necesario crearla en la raíz del sistema ni dentro de `/var/lib/docker`:
+
+```bash
+mkdir -p "$HOME/digibyte-core/data" "$HOME/digibyte-core/config"
+cd "$HOME/digibyte-core"
+```
+
+En un servidor administrado como servicio, también puedes usar una ruta del sistema como `/srv/digibyte-core` o `/opt/digibyte-core`. En ese caso créala con `sudo` y aplica los permisos indicados en el siguiente paso. No guardes la cadena dentro de `/var/lib/docker`, porque Docker administra ese directorio.
 
 ## Docker Compose para Linux
 
 Este ejemplo mantiene la cadena en `./data`, monta `digibyte.conf` desde `./config` y no publica RPC en el host. La red tiene nombre fijo para que un despliegue independiente de electrs pueda unirse a ella.
 
-### 1. Preparar directorios y permisos
+### 4. Preparar directorios y permisos
 
 El usuario `digibyte` que aparece dentro de la imagen tiene UID/GID 1000. En un bind mount, Docker aplica los permisos numéricos del host: no es necesario que en el host exista un usuario llamado `digibyte`. Si ya existe otro usuario con UID 1000, como ocurre habitualmente, no crees un segundo usuario con el mismo UID; utiliza el usuario existente y asigna los directorios a `1000:1000`.
 
@@ -88,12 +137,12 @@ chmod 600 config/digibyte.conf
 
 No pongas ese archivo en Git ni escribas la contraseña en argumentos de `docker run` o `docker compose`.
 
-### 2. `compose.yml`
+### 5. `compose.yml`
 
 ```yaml
 services:
   digibyte:
-    image: ghcr.io/digibyte-electrum/digibyte-core:9.26.7
+    image: ghcr.io/digibyte-electrum/digibyte-core@sha256:fd28db137e1f6ab7a794c7a144efbacfff63ad455301f5fd87820708c4f9e98f
     restart: unless-stopped
     user: "1000:1000"
     command:
@@ -137,7 +186,7 @@ Para consultar RPC desde un contenedor conectado a la red, usa el nombre `digiby
 ```bash
 docker run --rm --network digibyte-backend \
   --volume "$PWD/config:/opt/blockchain/config:ro" \
-  ghcr.io/digibyte-electrum/digibyte-core:9.26.7 \
+  ghcr.io/digibyte-electrum/digibyte-core@sha256:fd28db137e1f6ab7a794c7a144efbacfff63ad455301f5fd87820708c4f9e98f \
   digibyte-cli -conf=/opt/blockchain/config/digibyte.conf \
   -rpcconnect=digibyte -rpcport=14022 getblockchaininfo
 ```
@@ -187,7 +236,7 @@ En **Apps → Discover Apps → Custom App → Install via YAML**, usa una defin
 ```yaml
 services:
   digibyte:
-    image: ghcr.io/digibyte-electrum/digibyte-core:9.26.7
+    image: ghcr.io/digibyte-electrum/digibyte-core@sha256:fd28db137e1f6ab7a794c7a144efbacfff63ad455301f5fd87820708c4f9e98f
     restart: unless-stopped
     user: "1000:1000"
     command:
